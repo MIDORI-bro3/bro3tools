@@ -15,12 +15,12 @@
 // @require	https://code.jquery.com/jquery-2.1.4.min.js
 // @require	https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
 // @resource	jqueryui_css	http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css
-// @version 	0.0.0
+// @version 	0.0.1
 // ==================
 // 2021.05.23	0.0.0  配布初期バージョン
 // 2021.08.20   0.0.1　バグ修正：詳細で重盾タグが抜けていた
 // ==/UserScript==
-var VERSION = "0.0.0";
+var VERSION = "0.0.1";
 
 var HOST = location.hostname;
 var $ = window.jQuery;//OR
