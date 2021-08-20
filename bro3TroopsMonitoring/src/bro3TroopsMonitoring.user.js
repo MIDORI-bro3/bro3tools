@@ -18,7 +18,7 @@
 // @version 	0.0.0
 // ==================
 // 2021.05.23	0.0.0  配布初期バージョン
-//
+// 2021.08.20   0.0.1　バグ修正：詳細で重盾タグが抜けていた
 // ==/UserScript==
 var VERSION = "0.0.0";
 
@@ -65,7 +65,7 @@ var SORT_DOWN_ICON = BASE_URL + "/20160427-03/extend_project/w945/img/trade/icon
 	if (!$("#container").length) { return; }
 	// 歴史書モードの場合は無視
 	if ($("#sidebar img[title=歴史書]").length){ return; }
-     
+
     //南蛮ログかチェックする
     // ホスト名を取得
     hostName = ($('.brno a:nth-child(2)').text()).replace(/\s+/g, "");
@@ -87,67 +87,95 @@ var SORT_DOWN_ICON = BASE_URL + "/20160427-03/extend_project/w945/img/trade/icon
     //情報表示用テキストボックス
     $('table[summary="件名"]').after("<div><p>TroopsMonitoring</p></div><div style='margin-left: 4px;'><textarea id='troops_outtext' cols='40' rows='1' style='overflow: margin: 4px; '></textarea></div>");
 
+
+    //ボタンクリックで動作するイベントを設定
+    $('#troops_button_collect').on('click',function(){collection_troopsData();});
+    $('#troops_button_collectdetail').on('click',function(){collection_troopsDataALL();});
+    //$('#troops_button_3').on('click',function(){reservation_make();});
+    //$('#troops_button_4').on('click',function(){report_adjecent();});
+
     //援軍数
-    //var troopsNum = ($('table[summary="防御者"]').has('th[.defenser,contains("援軍")]')).length;
-    //var troopsNum = $($('table[summary="防御者"]').has('th[.defenser]')).length;
     var troopsNum = $('table[summary="防御者"]').has('th[class = "defenser"]').length;
     $("#troops_outtext").val( "部隊数=" + troopsNum + "\n" );
     if( 0 == troopsNum){
         return;
     }
 
-    //ボタンクリックで動作するイベントを設定
-    $('#troops_button_collect').on('click',function(){collection_troopsData();});
-    //$('#troops_button_2').on('click',function(){reservation_check();});
-    //$('#troops_button_3').on('click',function(){reservation_make();});
-    //$('#troops_button_4').on('click',function(){report_adjecent();});
-
     // ボタンを有効にする
     //var collect_button = document.getElementById('troops_button_collect').disabled;
     document.getElementById('troops_button_collect').disabled=false;
     document.getElementById('troops_button_collectdetail').disabled=false;
-    
-    // 集計処理
-    function collection_troopsData(){
-        //連打禁止
-        document.getElementById('troops_button_collect').disabled=true;
-        document.getElementById('troops_button_collectdetail').disabled=true;
 
-        // 集計用オブジェクト
-        let troopsData=[];
+
+    function cellection_troopsDataAll(troopsData){
         // データ読み込みループ
         for(var i=0; i < troopsNum; i++ ){
             //ユーザネームを取得
             var userName = $('th[class = "defenserBase"]').eq(i).children('a').eq(1).text();
+            var lowerSword = 0;//剣兵
+            var lowerShielder = 0;//盾兵
+            var lowerLancer = 0;//槍兵
+            var lowerArcher = 0;//弓兵
+            var lowerRider = 0;//騎兵
+            var lowerCar = 0;//衝車
+            var lowerScouter = 0;//斥候
+            var highSword = 0;//大剣兵
+            var highShilder = 0;//重盾兵
+            var highLancer = 0;//矛槍兵
+            var highArcher = 0;//弩兵
+            var highRider = 0;//近衛騎兵
+            var highCar = 0;//投石機
+            var highScouter = 0;//斥候騎兵
+            var eliteAxSoldier = 0;//斧兵
+            var eliteTwinSwordSoldier = 0;//双剣兵
+            var eliteHammerSoldier = 0;//大錘兵
             var lowerNum = 0;
             var higherNum = 0;
             var highShilderNum = 0;
             var eliteNum = 0;
             // 頭の悪いソース何とかしたい。
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(0).text());//剣兵
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(1).text());//盾兵
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(2).text());//槍兵
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(3).text());//弓兵
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(4).text());//騎兵
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(5).text());//衝車
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(6).text());//斥候
-            higherNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(0).text());//大剣兵
-            highShilderNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(1).text());//重盾兵
-            higherNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(2).text());//矛槍兵
-            higherNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(3).text());//弩兵
-            higherNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(4).text());//近衛騎兵
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(5).text());//投石兵
-            lowerNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(6).text());//斥候騎兵
-            eliteNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(8).children('td').eq(0).text());//戦斧
-            eliteNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(8).children('td').eq(1).text());//双剣兵
-            eliteNum += Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(8).children('td').eq(2).text());//大錘兵
+            lowerSword = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(0).text());//剣兵
+            lowerShielder = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(1).text());//盾兵
+            lowerLancer = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(2).text());//槍兵
+            lowerArcher = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(3).text());//弓兵
+            lowerRider = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(4).text());//騎兵
+            lowerCar = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(5).text());//衝車
+            lowerScouter = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(2).children('td').eq(6).text());//斥候
+            highSword = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(0).text());//大剣兵
+            highShilder = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(1).text());//重盾兵
+            highLancer = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(2).text());//矛槍兵
+            highArcher = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(3).text());//弩兵
+            highRider = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(4).text());//近衛騎兵
+            highCar = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(5).text());//投石
+            highScouter = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(5).children('td').eq(6).text());//斥候騎兵
+            eliteAxSoldier = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(8).children('td').eq(0).text());//戦斧
+            eliteTwinSwordSoldier = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(8).children('td').eq(1).text());//双剣兵
+            eliteHammerSoldier = Number($('tbody').has('th[class = "defenserBase"]').eq(i).children('tr').eq(8).children('td').eq(2).text());//大錘兵
+
             // フラグ初期化
             var notfound = 1;
-        if(troopsData.length){
+            if(troopsData.length){
                 var sameUser = troopsData.find( (user) => user.userName === userName );
-                //alert(JSON.stringify(sameUser));//debug
                 if(Object.keys(sameUser).length){
-                    addUserData(sameUser,lowerNum,higherNum,highShilderNum,eliteNum);
+                    addUserDataAll(
+                        sameUser,
+                        lowerSword,
+                        lowerShielder,
+                        lowerLancer,
+                        lowerArcher,
+                        lowerRider,
+                        lowerCar,
+                        lowerScouter,
+                        highSword,
+                        highShilder,
+                        highLancer,
+                        highArcher,
+                        highRider,
+                        highCar,
+                        highScouter,
+                        eliteAxSoldier,
+                        eliteTwinSwordSoldier,
+                        eliteHammerSoldier);
                     notfound = 0;
                 }
             }
@@ -155,22 +183,74 @@ var SORT_DOWN_ICON = BASE_URL + "/20160427-03/extend_project/w945/img/trade/icon
                 var userData = {
                     userName:userName,
                     baseNum:1,
-                    lower:lowerNum,
-                    higher:higherNum,
-                    highShilder:highShilderNum,
-                    elite:eliteNum
+                    lowerSword:lowerSword,
+                    lowerShielder:lowerShielder,
+                    lowerLancer:lowerLancer,
+                    lowerArcher:lowerArcher,
+                    lowerRider:lowerRider,
+                    lowerCar:lowerCar,
+                    lowerScouter:lowerScouter,
+                    highSword:highSword,
+                    highShilder:highShilder,
+                    highLancer:highLancer,
+                    highArcher:highArcher,
+                    highRider:highRider,
+                    highCar:highCar,
+                    highScouter:highScouter,
+                    eliteAxSoldier:eliteAxSoldier,
+                    eliteTwinSwordSoldier:eliteTwinSwordSoldier,
+                    eliteHammerSoldier:eliteHammerSoldier
                 };
                 troopsData.push(userData);
                 //alert(JSON.stringify(troopsData));
             }
         }
+    }
+
+    // 集計処理
+    function collection_troopsData(){
+        //連打禁止
+        document.getElementById('troops_button_collect').disabled=true;
+        document.getElementById('troops_button_collectdetail').disabled=true;
+        // データを集計する
+        let troopsData = [];
+        cellection_troopsDataAll(troopsData);
         if( troopsData.length ){
+            var headText = getHeadText();
+            var oldText = $("#troops_outtext").val();
+            $("#troops_outtext").val(oldText+headText);
             troopsData.forEach(
                 function(val,index){
                     //alert(JSON.stringify(val));
                     var addText = outputUserData(val);
                     // 前回文字列を取得
-                    var oldText = $("#troops_outtext").val();        
+                    var oldText = $("#troops_outtext").val();
+                    $("#troops_outtext").val(oldText+addText);
+                    // テキストエリアの幅を広くする
+                    var textRows = Number($("#troops_outtext").attr('rows'));
+                    $("#troops_outtext").attr('rows', textRows+ 1);
+                }
+            );
+        }
+    }
+    // 集計処理
+    function collection_troopsDataALL(){
+        //連打禁止
+        document.getElementById('troops_button_collect').disabled=true;
+        document.getElementById('troops_button_collectdetail').disabled=true;
+        // データを集計する
+        let troopsData = [];
+        cellection_troopsDataAll(troopsData);
+        if( troopsData.length ){
+            var headText = getHeadTextAll();
+            var oldText = $("#troops_outtext").val();
+            $("#troops_outtext").val(oldText+headText);
+            troopsData.forEach(
+                function(val,index){
+                    //alert(JSON.stringify(val));
+                    var addText = outputUserDataAll(val);
+                    // 前回文字列を取得
+                    var oldText = $("#troops_outtext").val();
                     $("#troops_outtext").val(oldText+addText);
                     // テキストエリアの幅を広くする
                     var textRows = Number($("#troops_outtext").attr('rows'));
@@ -180,24 +260,91 @@ var SORT_DOWN_ICON = BASE_URL + "/20160427-03/extend_project/w945/img/trade/icon
         }
     }
 
-    function outputUserData(userData){
-        var outtext 
-        = userData.userName + "\t"
-        + userData.baseNum + "\t"
-        + userData.lower + "\t"
-        + userData.higher + "\t"
-        + userData.highShilder + "\t"
-        + userData.elite + "\n"
+    function getHeadTextAll(){
+        var outtext
+        = "ユーザ名" + "\t"
+        + "拠点数" + "\t"
+        + "剣兵" + "\t"
+        + "盾兵" + "\t"
+        + "槍兵" + "\t"
+        + "弓兵" + "\t"
+        + "騎兵" + "\t"
+        + "衝車" + "\t"
+        + "斥候" + "\t"
+        + "大剣兵" + "\t"
+        + "重盾兵" + "\t"
+        + "矛槍兵" + "\t"
+        + "弩兵" + "\t"
+        + "近衛騎兵" + "\t"
+        + "投石兵" + "\t"
+        + "斥候騎兵" + "\t"
+        + "戦斧兵" + "\t"
+        + "双剣兵" + "\t"
+        + "大錘兵" + "\n";
         return outtext;
     }
-    //新規オブジェクト生成
-    function newUserData(userName,baseNum,lower,higher,highShilder,elite){
-        this.userName = userName;
-        this.baseNum = baseNum;
-        this.lower = lower;
-        this.higher = higher;
-        this.highShilder = highShilder;
-        this.elite = elite;
+
+    function getHeadText(){
+        var outtext
+        = "ユーザ名" + "\t"
+        + "拠点数" + "\t"
+        + "下級兵" + "\t"
+        + "上級兵" + "\t"
+        + "重盾兵" + "\t"
+        + "鋭兵" + "\n";
+        return outtext;
+    }
+
+    function outputUserDataAll(userData){
+        var outtext
+        = userData.userName + "\t"
+        + userData.baseNum + "\t"
+        + userData.lowerSword + "\t"
+        + userData.lowerShielder + "\t"
+        + userData.lowerLancer + "\t"
+        + userData.lowerArcher + "\t"
+        + userData.lowerRider + "\t"
+        + userData.lowerCar + "\t"
+        + userData.lowerScouter + "\t"
+        + userData.highSword + "\t"
+        + userData.highShilder + "\t"
+        + userData.highLancer + "\t"
+        + userData.highArcher + "\t"
+        + userData.highRider + "\t"
+        + userData.highCar + "\t"
+        + userData.highScouter + "\t"
+        + userData.eliteAxSoldier + "\t"
+        + userData.eliteTwinSwordSoldier + "\t"
+        + userData.eliteHammerSoldier + "\n"
+        return outtext;
+    }
+
+    function outputUserData(userData){
+        // 一次集計
+        lowerNum = userData.lowerSword 
+                    + userData.lowerShielder 
+                    + userData.lowerLancer 
+                    + userData.lowerArcher 
+                    + userData.lowerRider 
+                    + userData.lowerCar
+                    + userData.lowerScouter 
+                    + userData.highScouter 
+                    + userData.highCar;
+        higherNum = userData.highSword 
+                    + userData.highLancer
+                    + userData.highRider;
+        highShilderNum = userData.highShilder;
+        eliteNum =  userData.eliteAxSoldier
+                     + userData.eliteTwinSwordSoldier 
+                     + userData.eliteHammerSoldier;
+        var outtext
+        = userData.userName + "\t"
+        + userData.baseNum + "\t"
+        + lowerNum + "\t"
+        + higherNum + "\t"
+        + highShilderNum + "\t"
+        + eliteNum + "\n"
+        return outtext;
     }
     //加算
     function addUserData(oldData, lower,higher,highShilder,elite){
@@ -207,137 +354,44 @@ var SORT_DOWN_ICON = BASE_URL + "/20160427-03/extend_project/w945/img/trade/icon
         oldData.highShilder += highShilder;
         oldData.elite += elite;
     }
-
-　　// 予約解除処理
-    function reservation_cancle(){
-        // 送信情報配列
-        var reqpalam = {
-            'func':'DeleteReservation',
-            'fortName':baseName,
-            'playerName':userName,
-            'note':""
-        };
-        //多重クリック禁止用
-        button_controler(0);//全部トーンダウン
-        $("#SiegeHleper_outtext").val( "予約解除処理中:Please wait");
-        $.ajax({
-            type: "GET",
-            url: gasUrl,
-            data: reqpalam,
-            dataType:'jsonp',//jsonpの場合POSTが使えないらしい。。。
-            callback: 'callback'//コールバックパラメータ名の指定
-        }).done(function(data) {
-            //成功時の処理
-            //予約結果確認
-           reservation_check();
-        }).fail(function(jqXHR, textStatus, errorThrown){
-            $("#SiegeHleper_outtext").val("なんかエラー：エラー処理(予約確認)\n"
-                                          +"XMLHttpRequest : " + jqXHR.status
-                                          + "\ntextStatus     : " + textStatus
-                                          + "\nerrorThrown: " + errorThrown.message);
-        });
-    }
-
-　　// 隣接報告処理
-    function report_adjecent(){
-        // 送信情報配列
-        var reqpalam = {
-            'func':'ReportAdjacent',
-            'fortName':baseName
-        };
-        //$("#SiegeHleper_outtext").val( "隣接報告中:Please wait");
-        //多重クリック禁止用
-        button_controler("adjecentOFF");//報告ボタンのみOFF
-        $.ajax({
-            type: "get",
-            url: gasUrl,
-            data: reqpalam,
-            dataType:'jsonp',
-            callback: 'callback'//コールバックパラメータ名の指定
-        }).done(function(data) {
-            //成功時の処理
-            alert("SSに報告をアップロードしました");
-            button_controler("adjecentON");//報告ボタンのみON
-        }).fail(function(jqXHR, textStatus, errorThrown){
-            $("#SiegeHleper_outtext").val("なんかエラー：エラー処理(予約確認)\n"
-                                          +"XMLHttpRequest : " + jqXHR.status
-                                          + "\ntextStatus     : " + textStatus
-                                          + "\nerrorThrown: " + errorThrown.message);
-        });
-    }
-　　// 予約チェック処理
-    function reservation_check(){
-        // 送信情報配列
-        var reqpalam = {
-            'func':'CheckReservation',
-            'fortName':baseName
-        };
-        $("#SiegeHleper_outtext").val( "予約確認中:Please wait");
-        //多重クリック禁止用
-        button_controler(0);//全部トーンダウン
-        $.ajax({
-            type: "get",
-            url: gasUrl,
-            data: reqpalam,
-            dataType:'jsonp',
-            callback: 'callback'//コールバックパラメータ名の指定
-        }).done(function(data) {
-            //成功時の処理
-            $("#SiegeHleper_outtext").val("予約情報取得成功⇒解析中:please wait");
-            if( data.length === 0){
-                $("#SiegeHleper_outtext").val("だれも予約してないよ～");
-                button_controler(1);//予約なし
-            }
-            else{
-                $("#SiegeHleper_outtext").val(data.length+"人が予約中");
-                for( var loop = 0; loop < data.length; loop++){
-                    if(data[loop][attackerKey]){
-                        //自分の予約かチェック
-                        if(userName == data[loop][attackerKey]){
-                            $("#SiegeHleper_outtext").val(String($("#SiegeHleper_outtext").val())+"["+data[loop][attackerKey]+"(★あなた★)]");
-                            button_controler(2);//自分が予約
-                        }
-                        else{
-                            $("#SiegeHleper_outtext").val(String($("#SiegeHleper_outtext").val())+"["+data[loop][attackerKey]+"]");
-                            button_controler(3);//他人が予約
-                        }
-                    }
-                }
-            }
-        }).fail(function(jqXHR, textStatus, errorThrown){
-            $("#SiegeHleper_outtext").val("なんかエラー：エラー処理(予約確認)\n"
-                                          +"XMLHttpRequest : " + jqXHR.status
-                                          + "\ntextStatus     : " + textStatus
-                                          + "\nerrorThrown: " + errorThrown.message);
-        });
-    }
-　　// 予約処理
-    function reservation_make(){
-        // 送信情報配列
-        var reqpalam = {
-            'func':'MakeReservation',
-            'fortName':baseName,
-            'playerName':userName,
-            'note':""
-        };
-        //多重クリック禁止用
-        button_controler(0);//全部トーンダウン
-        $("#SiegeHleper_outtext").val( "予約処理中:Please wait");
-        $.ajax({
-            type: "GET",
-            url: gasUrl,
-            data: reqpalam,
-            dataType:'jsonp',//jsonpの場合POSTが使えないらしい。。。
-            callback: 'callback'//コールバックパラメータ名の指定
-        }).done(function(data) {
-            //成功時の処理
-            //予約結果確認
-           reservation_check();
-        }).fail(function(jqXHR, textStatus, errorThrown){
-            $("#SiegeHleper_outtext").val("なんかエラー：エラー処理(予約確認)\n"
-                                          +"XMLHttpRequest : " + jqXHR.status
-                                          + "\ntextStatus     : " + textStatus
-                                          + "\nerrorThrown: " + errorThrown.message);
-        });
+    //加算(全て)
+    function addUserDataAll(
+        oldData,
+        lowerSword,
+        lowerShielder,
+        lowerLancer,
+        lowerArcher,
+        lowerRider,
+        lowerCar,
+        lowerScouter,
+        highSword,
+        highShilder,
+        highLancer,
+        highArcher,
+        highRider,
+        highCar,
+        highScouter,
+        eliteAxSoldier,
+        eliteTwinSwordSoldier,
+        eliteHammerSoldier
+    ){
+        oldData.baseNum += 1;
+        oldData.lowerSword += lowerSword;
+        oldData.lowerShielder += lowerShielder;
+        oldData.lowerLancer += lowerLancer;
+        oldData.lowerArcher += lowerArcher;
+        oldData.lowerRider += lowerRider;
+        oldData.lowerCar += lowerCar;
+        oldData.lowerScouter += lowerScouter;
+        oldData.highSword += highSword;
+        oldData.highShilder += highShilder;
+        oldData.highLancer += highLancer;
+        oldData.highArcher += highArcher;
+        oldData.highRider += highRider;
+        oldData.highCar += highCar;
+        oldData.highScouter += highScouter;
+        oldData.eliteAxSoldier += eliteAxSoldier;
+        oldData.eliteTwinSwordSoldier += eliteTwinSwordSoldier;
+        oldData.eliteHammerSoldier += eliteHammerSoldier;
     }
 })();
