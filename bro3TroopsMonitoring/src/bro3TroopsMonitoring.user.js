@@ -7,7 +7,7 @@
 // @include		*://w*.3gokushi.jp/report/detail.php*
 // @connect		3gokushi.jp
 // @author      みどり
-// @updateURL	//https://github.com/MIDORI-bro3/-bro3_siegehelper/blob/master/src/siegeSupport.user.js
+// @updateURL	//https://github.com/MIDORI-bro3/bro3tools/blob/master/bro3TroopsMonitoring/src/bro3TroopsMonitoring.user.js
 // @grant none
 // @grant GM_setValue
 // @grant GM_getValue
